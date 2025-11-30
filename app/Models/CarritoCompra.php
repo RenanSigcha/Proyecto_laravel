@@ -12,7 +12,20 @@ class CarritoCompra extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'producto_id', 'cantidad', 'precio_total'
+        'user_id',
+        'producto_id',
+        'session_id',
+        'cantidad',
+        'precio_unitario',
+        'precio_total',
+        'subtotal',
+    ];
+
+    protected $casts = [
+        'cantidad' => 'integer',
+        'precio_unitario' => 'decimal:2',
+        'precio_total' => 'decimal:2',
+        'subtotal' => 'decimal:2',
     ];
 
     // Relación con el producto
@@ -25,5 +38,23 @@ class CarritoCompra extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    // Calcular subtotal basado en cantidad y precio unitario
+    public function calcularSubtotal()
+    {
+        return $this->cantidad * $this->precio_unitario;
+    }
+
+    // Scope para carrito de usuario específico
+    public function scopePorUsuario($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    // Scope para carrito de sesión (invitados)
+    public function scopePorSesion($query, $sessionId)
+    {
+        return $query->where('session_id', $sessionId);
     }
 }

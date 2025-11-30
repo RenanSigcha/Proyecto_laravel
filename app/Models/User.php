@@ -12,12 +12,24 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    /**
+     * The column name used to authenticate users.
+     */
+    const USERNAME = 'correo_electronico';
+
     protected $fillable = [
-        'nombre', 'apellido', 'correo_electronico', 'telefono', 'direccion_envio', 'password', 'role'
+        'nombre',
+        'apellido',
+        'correo_electronico',
+        'telefono',
+        'direccion_envio',
+        'password',
+        'role'
     ];
 
     protected $hidden = [
-        'password', 'remember_token',
+        'password',
+        'remember_token',
     ];
 
     protected function casts(): array
@@ -45,4 +57,27 @@ class User extends Authenticatable
     {
         return $this->hasMany(Notificacion::class);
     }
-}
+
+    // Scope para admin
+    public function scopeAdmin($query)
+    {
+        return $query->where('role', 'admin');
+    }
+
+    // Scope para clientes
+    public function scopeClientes($query)
+    {
+        return $query->where('role', 'cliente');
+    }
+
+    // Verificar si es admin
+    public function esAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    // Obtener nombre completo
+    public function getNombreCompletoAttribute()
+    {
+        return "{$this->nombre} {$this->apellido}";
+    }
