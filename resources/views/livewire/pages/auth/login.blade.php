@@ -21,11 +21,15 @@ new #[Layout('layouts.guest')] class extends Component
         Session::regenerate();
 
         // Redirigir según rol del usuario
-        $defaultRoute = auth()->user()->role === 'admin' 
-            ? route('admin.dashboard', absolute: false)
-            : route('dashboard', absolute: false);
+        $user = auth()->user();
         
-        $this->redirectIntended(default: $defaultRoute, navigate: true);
+        if ($user && $user->role === 'admin') {
+            // Admin: redirigir al panel de administración
+            $this->redirect(route('admin.dashboard'), navigate: true);
+        } else {
+            // Cliente: redirigir al dashboard de cliente
+            $this->redirectIntended(default: route('dashboard'), navigate: true);
+        }
     }
 }; ?>
 

@@ -10,43 +10,81 @@ use Illuminate\Http\Request;
 
 class CarritoCompraController extends Controller
 {
-    // Ver el carrito del usuario
+    // Ver el carrito del usuario autenticado
     public function index()
     {
-        $carrito = CarritoCompra::where('user_id', auth()->id())->get();
-        return response()->json($carrito);
+        try {
+            $carrito = CarritoCompra::where('user_id', auth()->id())->with('producto')->get();
+            $total = $carrito->sum('precio_total');
+            
+            return response()->json([
+                'success' => true,
+                'data' => $carrito,
+                'total' => $total,
+                'count' => count($carrito)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => 'Error'], 500);
+        }
     }
 
     // Agregar un producto al carrito
     public function store(Request $request)
     {
-        $request->validate([
-            'producto_id' => 'required|exists:productos,id',
-            'cantidad' => 'required|integer|min:1',
-        ]);
+        try {
+            $validated = $request->validate([
+                'producto_id' => 'required|exists:productos,id',
+                'cantidad' => 'required|integer|min:1',
+            ]);
 
-        $producto = Producto::find($request->producto_id);
-        $precio_total = $producto->precio * $request->cantidad;
+            $producto = Producto::find($validated['producto_id']);
+            if (!$producto) {
+                return response()->json(['success' => false, 'error' => 'No encontrado'], 404);
+            }
 
-        $carrito = CarritoCompra::create([
-            'user_id' => auth()->id(),
-            'producto_id' => $request->producto_id,
-            'cantidad' => $request->cantidad,
-            'precio_total' => $precio_total,
-        ]);
+            if ($producto->cantidad_disponible < $validated['cantidad']) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Stock insuficiente'
+                ], 400);
+            }
 
-        return response()->json($carrito, 201);
+            $precio_total = $producto->precio * $validated['cantidad'];
+
+            $carrito = CarritoCompra::create([
+                'user_id' => auth()->id(),
+                'producto_id' => $validated['producto_id'],
+                'cantidad' => $validated['cantidad'],
+                'precio_total' => $precio_total,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $carrito,
+                'message' => 'Agregado al carrito'
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => 'Error'], 500);
+        }
     }
 
     // Eliminar un producto del carrito
     public function destroy($id)
     {
-        $carrito = CarritoCompra::find($id);
-        if (!$carrito || $carrito->user_id !== auth()->id()) {
-            return response()->json(['error' => 'Producto no encontrado en el carrito'], 404);
-        }
+        try {
+            $carrito = CarritoCompra::find($id);
+            if (!$carrito) {
+                return response()->json(['success' => false, 'error' => 'No encontrado'], 404);
+            }
 
-        $carrito->delete();
-        return response()->json(['message' => 'Producto eliminado del carrito'], 204);
+            if ($carrito->user_id !== auth()->id()) {
+                return response()->json(['success' => false, 'error' => 'No autorizado'], 403);
+            }
+
+            $carrito->delete();
+            return response()->json(['success' => true, 'message' => 'Eliminado']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => 'Error'], 500);
+        }
     }
 }

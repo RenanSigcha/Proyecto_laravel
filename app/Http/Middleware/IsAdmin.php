@@ -15,10 +15,16 @@ class IsAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Verificar si el usuario está autenticado y es admin
-        if (! auth()->check() || auth()->user()->role !== 'admin') {
-            // Redirigir a dashboard o login según esté autenticado
-            return redirect()->route(auth()->check() ? 'dashboard' : 'login');
+        // Verificar que el usuario esté autenticado
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        // Verificar que el usuario tenga rol de admin
+        $user = auth()->user();
+        if (!$user || $user->role !== 'admin') {
+            // Si es un cliente autenticado, redirigir a su dashboard
+            return redirect()->route('dashboard');
         }
 
         return $next($request);

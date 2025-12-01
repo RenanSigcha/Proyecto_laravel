@@ -9,59 +9,110 @@ use Illuminate\Http\Request;
 
 class ProductoController extends Controller
 {
-    // Mostrar todos los productos
+    // Mostrar todos los productos (públicos)
     public function index()
     {
-        $productos = Producto::all();
-        return response()->json($productos);
+        try {
+            $productos = Producto::all();
+            return response()->json([
+                'success' => true,
+                'data' => $productos,
+                'count' => count($productos)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Error al obtener productos'
+            ], 500);
+        }
     }
 
-    // Mostrar un producto por ID
+    // Mostrar un producto por ID (público)
     public function show($id)
     {
-        $producto = Producto::find($id);
-        if (!$producto) {
-            return response()->json(['error' => 'Producto no encontrado'], 404);
+        try {
+            $producto = Producto::find($id);
+            if (!$producto) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Producto no encontrado'
+                ], 404);
+            }
+            return response()->json([
+                'success' => true,
+                'data' => $producto
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Error al obtener producto'
+            ], 500);
         }
-        return response()->json($producto);
     }
 
-    // Crear un nuevo producto
+    // Crear un nuevo producto (solo admin)
     public function store(Request $request)
     {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'required|string',
-            'precio' => 'required|numeric',
-            'cantidad_disponible' => 'required|integer',
-            'categoria' => 'required|in:semillas,fertilizantes,pesticidas',
-        ]);
-
-        $producto = Producto::create($request->all());
-        return response()->json($producto, 201);
-    }
-
-    // Actualizar un producto existente
-    public function update(Request $request, $id)
-    {
-        $producto = Producto::find($id);
-        if (!$producto) {
-            return response()->json(['error' => 'Producto no encontrado'], 404);
+        if (auth()->user()->role !== 'admin') {
+            return response()->json(['success' => false, 'error' => 'No autorizado'], 403);
         }
 
-        $producto->update($request->all());
-        return response()->json($producto);
+        try {
+            $validated = $request->validate([
+                'nombre' => 'required|string|max:255',
+                'descripcion' => 'required|string',
+                'precio' => 'required|numeric|min:0',
+                'cantidad_disponible' => 'required|integer|min:0',
+            ]);
+
+            $producto = Producto::create($validated);
+            return response()->json([
+                'success' => true,
+                'data' => $producto,
+                'message' => 'Producto creado'
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => 'Error'], 500);
+        }
+    }
+
+    // Actualizar un producto
+    public function update(Request $request, $id)
+    {
+        if (auth()->user()->role !== 'admin') {
+            return response()->json(['success' => false, 'error' => 'No autorizado'], 403);
+        }
+
+        try {
+            $producto = Producto::find($id);
+            if (!$producto) {
+                return response()->json(['success' => false, 'error' => 'No encontrado'], 404);
+            }
+
+            $producto->update($request->all());
+            return response()->json(['success' => true, 'data' => $producto]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => 'Error'], 500);
+        }
     }
 
     // Eliminar un producto
     public function destroy($id)
     {
-        $producto = Producto::find($id);
-        if (!$producto) {
-            return response()->json(['error' => 'Producto no encontrado'], 404);
+        if (auth()->user()->role !== 'admin') {
+            return response()->json(['success' => false, 'error' => 'No autorizado'], 403);
         }
 
-        $producto->delete();
-        return response()->json(['message' => 'Producto eliminado correctamente'], 204);
+        try {
+            $producto = Producto::find($id);
+            if (!$producto) {
+                return response()->json(['success' => false, 'error' => 'No encontrado'], 404);
+            }
+
+            $producto->delete();
+            return response()->json(['success' => true, 'message' => 'Eliminado']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => 'Error'], 500);
+        }
     }
 }

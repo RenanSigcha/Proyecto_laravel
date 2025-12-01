@@ -38,5 +38,5 @@ Route::middleware('auth:sanctum')->group(function () {
 // Rutas para notificaciones (CRUD)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notificaciones', [NotificacionController::class, 'index']);  // Ver las notificaciones del usuario
-    Route::put('/notificaciones/{id}/read', [NotificacionController::class, 'markAsRead']);  // Marcar una notificación como leída
+    Route::put('/notificaciones/{id}/mark-as-read', [NotificacionController::class, 'markAsRead']);  // Marcar una notificación como leída
 });
