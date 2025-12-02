@@ -40,7 +40,7 @@ new #[Layout('layouts.admin')] class extends Component
                             <td class="px-4 py-3 text-sm"><?= $u->correo_electronico ?></td>
                             <td class="px-4 py-3 text-sm"> <span class="inline-block px-2 py-1 rounded <?= $u->role === 'admin' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' ?> "><?= $u->role ?></span></td>
                             <td class="px-4 py-3 text-sm">
-                                <form method="POST" action="<?= route('admin.usuarios.role.update', ['user' => $u->id]) ?>" class="flex items-center gap-2">
+                                <form method="POST" action="<?= route('admin.usuarios.role.update', $u->id) ?>" class="flex items-center gap-2">
                                     <?= csrf_field() ?>
                                     <select name="role" class="border rounded px-2 py-1">
                                         <option value="cliente" <?= $u->role === 'cliente' ? 'selected' : '' ?>>Cliente</option>
