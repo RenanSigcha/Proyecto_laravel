@@ -14,9 +14,12 @@ Route::post('/login', [UserController::class, 'login']);  // Login de usuario
 Route::middleware('auth:sanctum')->get('/me', [UserController::class, 'me']);  // Obtener datos del usuario autenticado
 
 // Rutas para productos (CRUD)
+// Permitir lectura pública de productos (GET) para la página principal
+Route::get('/productos', [ProductoController::class, 'index']);  // Ver todos los productos (público)
+Route::get('/productos/{id}', [ProductoController::class, 'show']);  // Ver un producto específico (público)
+
+// Rutas de producto que requieren autenticación (crear/editar/eliminar)
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/productos', [ProductoController::class, 'index']);  // Ver todos los productos
-    Route::get('/productos/{id}', [ProductoController::class, 'show']);  // Ver un producto específico
     Route::post('/productos', [ProductoController::class, 'store']);  // Crear un producto (solo admin)
     Route::put('/productos/{id}', [ProductoController::class, 'update']);  // Actualizar un producto (solo admin)
     Route::delete('/productos/{id}', [ProductoController::class, 'destroy']);  // Eliminar un producto (solo admin)

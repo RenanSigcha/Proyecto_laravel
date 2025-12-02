@@ -28,7 +28,7 @@ new #[Layout('layouts.guest')] class extends Component
             $this->redirect(route('admin.dashboard'), navigate: true);
         } else {
             // Cliente: redirigir al dashboard de cliente
-            $this->redirectIntended(default: route('dashboard'), navigate: true);
+            $this->redirect(route('cliente.dashboard'), navigate: true);
         }
     }
 }; ?>

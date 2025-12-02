@@ -89,7 +89,20 @@ class ProductoController extends Controller
                 return response()->json(['success' => false, 'error' => 'No encontrado'], 404);
             }
 
-            $producto->update($request->all());
+            $validated = $request->validate([
+                'nombre' => 'sometimes|required|string|max:255',
+                'descripcion' => 'nullable|string',
+                'precio' => 'sometimes|required|numeric|min:0',
+                'cantidad_disponible' => 'sometimes|required|integer|min:0',
+                'sku' => 'nullable|string|max:100',
+                'categoria' => 'nullable|string|max:100',
+            ]);
+
+            $producto->update($validated);
+
+            // Refrescar modelo
+            $producto->refresh();
+
             return response()->json(['success' => true, 'data' => $producto]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => 'Error'], 500);
