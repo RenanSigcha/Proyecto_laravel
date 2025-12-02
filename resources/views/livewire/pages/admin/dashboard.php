@@ -46,7 +46,7 @@ new #[Layout('layouts.admin')] class extends Component
                         🎯 Panel de Control
                     </h1>
                     <p class="text-gray-600 mt-2">
-                        Bienvenido, <span class="font-semibold text-gray-900">{{ auth()->user()->nombre }} {{ auth()->user()->apellido }}</span>
+                        Bienvenidooo, <span class="font-semibold text-gray-900">{{ auth()->user()->nombre }} {{ auth()->user()->apellido }}</span>
                     </p>
                 </div>
                 <div class="text-right">
